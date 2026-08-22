@@ -1108,11 +1108,14 @@ def run_bot():
 
     # Poll forever. If the flaky network kills the poller, rebuild a fresh
     # app (clean event loop) and restart instead of letting the process exit.
+    # stop_signals=None is REQUIRED: run_polling registers signal handlers,
+    # which only works in the main thread (Render runs this in a worker
+    # thread -> ValueError "signal only works in main thread" otherwise).
     import time as _time
     while True:
         try:
             _fresh = build_app()
-            _fresh.run_polling()
+            _fresh.run_polling(stop_signals=None)
             break
         except Exception as e:
             print(f"[main] poller died ({type(e).__name__}: {e}); restarting in 5s...")
